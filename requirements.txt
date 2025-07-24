@@ -1,5 +1,4 @@
 vllm
 open-webui
-torch
 transformers
 accelerate 

@@ -1,21 +1,26 @@
-# Usar imagen base con CUDA y Python
-FROM nvidia/cuda:12.1-devel-ubuntu22.04
+# Usar la misma imagen base que tu proyecto principal
+FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
 # Evitar prompts interactivos durante la instalación
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Asegurar que PATH incluya Conda binaries
+ENV PATH="/opt/conda/bin:$PATH"
+
 # Instalar dependencias del sistema
-RUN apt-get update && apt-get install -y \
-    python3 \
-    python3-pip \
-    python3-venv \
-    curl \
-    wget \
-    git \
+RUN apt-get update && apt-get install -y --no-install-recommends \
     openssh-server \
     openssh-client \
     sudo \
+    curl \
+    wget \
+    git \
+    build-essential \
+    && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
+
+# Forzar "python3" para usar el conda Python
+RUN ln -sf /opt/conda/bin/python /usr/local/bin/python3
 
 # Crear usuario para SSH
 RUN useradd -m -s /bin/bash dockeruser && \
@@ -45,8 +50,10 @@ COPY s6-overlay/ /etc/s6-overlay/
 COPY requirements.txt /app/
 COPY docker-entrypoint.sh /app/
 
-# Instalar dependencias de Python
-RUN pip3 install --no-cache-dir -r requirements.txt
+# Instalar dependencias de Python usando conda
+RUN conda install -c conda-forge -y numpy==1.24.3 && \
+    pip install --no-cache-dir -r requirements.txt && \
+    pip cache purge
 
 # Hacer ejecutable el script de entrada
 RUN chmod +x /app/docker-entrypoint.sh
