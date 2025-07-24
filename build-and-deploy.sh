@@ -7,6 +7,7 @@ echo "=== LLM WebUI Docker Build & Deploy ==="
 RED='\033[0;31m'
 GREEN='\033[0;32m'
 YELLOW='\033[1;33m'
+BLUE='\033[0;34m'
 NC='\033[0m' # No Color
 
 # Función para imprimir mensajes
@@ -21,6 +22,22 @@ print_warning() {
 print_error() {
     echo -e "${RED}[ERROR]${NC} $1"
 }
+
+print_info() {
+    echo -e "${BLUE}[INFO]${NC} $1"
+}
+
+# Verificar configuración de s6-overlay
+print_info "Verificando configuración de s6-overlay..."
+if [ -f "./test-s6-config.sh" ]; then
+    ./test-s6-config.sh
+    if [ $? -ne 0 ]; then
+        print_error "Error en la configuración de s6-overlay"
+        exit 1
+    fi
+else
+    print_warning "Script de verificación no encontrado, continuando..."
+fi
 
 # Verificar que Docker esté instalado
 if ! command -v docker &> /dev/null; then
@@ -73,14 +90,14 @@ else
 fi
 
 # Esperar un momento y mostrar logs
-sleep 5
+sleep 15
 print_status "Mostrando logs iniciales..."
-docker-compose logs --tail=20
+docker-compose logs --tail=30
 
 print_status "=== Despliegue completado ==="
 echo ""
 print_status "Servicios disponibles:"
-echo "  - SSH: localhost:22 (usuario: dockeruser, password: password123)"
+echo "  - SSH: localhost:4444 (usuario: root, password: root123)"
 echo "  - vLLM API: http://localhost:8000/v1"
 echo "  - Open WebUI: http://localhost:27015"
 echo ""

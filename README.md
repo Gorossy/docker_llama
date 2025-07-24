@@ -1,10 +1,11 @@
-# LLM WebUI Docker Container
+# LLM WebUI Docker Container con s6-overlay
 
 Este contenedor Docker proporciona una solución completa para ejecutar un servidor LLM con interfaz web, incluyendo:
 
 - **vLLM**: Servidor de LLM con soporte GPU
 - **Open WebUI**: Interfaz web moderna para interactuar con el LLM
 - **SSH**: Acceso remoto al contenedor
+- **s6-overlay**: Gestión avanzada de servicios con dependencias
 
 ## Características
 
@@ -14,13 +15,14 @@ Este contenedor Docker proporciona una solución completa para ejecutar un servi
 - ✅ Reinicio automático de servicios
 - ✅ Logs centralizados
 - ✅ Configuración flexible mediante variables de entorno
+- ✅ Verificación automática de configuración
 
 ## Requisitos
 
 - Docker
 - Docker Compose
-- GPU NVIDIA con drivers instalados
-- NVIDIA Container Toolkit
+- GPU NVIDIA con drivers instalados (opcional)
+- NVIDIA Container Toolkit (si usas GPU)
 
 ## Instalación
 
@@ -30,37 +32,30 @@ git clone <tu-repositorio>
 cd <tu-repositorio>
 ```
 
-### 2. Construir la imagen
+### 2. Verificar configuración (recomendado)
+```bash
+./test-s6-config.sh
+```
+
+### 3. Construir y ejecutar automáticamente
+```bash
+./build-and-deploy.sh
+```
+
+### 4. Construir manualmente
 ```bash
 docker build -t llm-webui .
-```
-
-### 3. Ejecutar con Docker Compose
-```bash
 docker-compose up -d
-```
-
-### 4. Ejecutar con Docker directamente
-```bash
-docker run -d \
-  --name llm-webui \
-  --gpus all \
-  -p 22:22 \
-  -p 8000:8000 \
-  -p 27015:27015 \
-  -v $(pwd)/data:/app/open-webui-data \
-  llm-webui
 ```
 
 ## Acceso a los servicios
 
 ### SSH
-- **Puerto**: 22
-- **Usuario**: `dockeruser` / `password123`
-- **Root**: `root` / `root123`
+- **Puerto**: 4444 (mapeado desde 22 interno)
+- **Usuario**: `root` / `root123`
 
 ```bash
-ssh dockeruser@localhost -p 22
+ssh root@localhost -p 4444
 ```
 
 ### Open WebUI
@@ -84,31 +79,68 @@ ssh dockeruser@localhost -p 22
 | `VLLM_GPU_MEMORY_UTILIZATION` | Utilización de memoria GPU | `0.85` |
 | `VLLM_MODEL` | Modelo LLM a cargar | `NousResearch/Meta-Llama-3-8B-Instruct` |
 
-## Estructura de servicios
+## Gestión de servicios con s6-overlay
 
+### Orden de inicio de servicios:
+1. **SSH** (puerto 22 interno) - Se inicia primero
+2. **vLLM** (puerto 8000) - Espera a que SSH esté listo
+3. **Open WebUI** (puerto 27015) - Espera a que SSH y vLLM estén listos
+
+### Dependencias configuradas:
+- vLLM depende de SSH
+- Open WebUI depende de SSH y vLLM
+
+### Estructura de servicios
 ```
 SSH (puerto 22) ← independiente
 vLLM (puerto 8000) ← depende de SSH
-Open WebUI (puerto 27015) ← depende de vLLM
+Open WebUI (puerto 27015) ← depende de vLLM y SSH
 ```
 
 ## Logs
 
 Para ver los logs de todos los servicios:
 ```bash
-docker logs llm-webui
+docker-compose logs -f
 ```
 
 Para ver logs específicos:
 ```bash
 # SSH
-docker exec llm-webui cat /var/log/s6/01-ssh/current
+docker exec llm-webui-container cat /var/log/s6/01-ssh/current
 
 # vLLM
-docker exec llm-webui cat /var/log/s6/02-vllm/current
+docker exec llm-webui-container cat /var/log/s6/02-vllm/current
 
 # Open WebUI
-docker exec llm-webui cat /var/log/s6/03-openwebui/current
+docker exec llm-webui-container cat /var/log/s6/03-openwebui/current
+```
+
+## Comandos útiles
+
+### Verificar configuración de s6-overlay
+```bash
+./test-s6-config.sh
+```
+
+### Ver logs en tiempo real
+```bash
+docker-compose logs -f
+```
+
+### Detener servicios
+```bash
+docker-compose down
+```
+
+### Reconstruir imagen
+```bash
+docker-compose build --no-cache
+```
+
+### Acceder al contenedor
+```bash
+docker exec -it llm-webui-container bash
 ```
 
 ## Solución de problemas
@@ -124,11 +156,23 @@ docker run --rm --gpus all nvidia/cuda:12.1-base-ubuntu22.04 nvidia-smi
 
 ### Servicios no inician
 ```bash
+# Verificar configuración de s6-overlay
+./test-s6-config.sh
+
 # Verificar logs
-docker logs llm-webui
+docker-compose logs
 
 # Reiniciar contenedor
 docker-compose restart
+```
+
+### Problemas con s6-overlay
+```bash
+# Verificar permisos de scripts
+chmod +x s6-overlay/s6-rc.d/user/*/run
+
+# Verificar configuración
+./test-s6-config.sh
 ```
 
 ### Cambiar modelo LLM
@@ -147,12 +191,32 @@ docker-compose up -d --build
 ### Cambiar credenciales SSH
 Editar el Dockerfile y cambiar las líneas:
 ```dockerfile
-RUN useradd -m -s /bin/bash dockeruser && \
-    echo "dockeruser:tu-password" | chpasswd
+RUN echo 'root:tu-password' | chpasswd
 ```
 
 ### Agregar más modelos
 Modificar la variable `VLLM_MODEL` en docker-compose.yml o como variable de entorno.
+
+## Estructura del proyecto
+
+```
+.
+├── Dockerfile                 # Configuración del contenedor
+├── docker-compose.yml         # Configuración de servicios
+├── docker-entrypoint.sh       # Script de inicialización
+├── requirements.txt           # Dependencias de Python
+├── build-and-deploy.sh        # Script de construcción y despliegue
+├── test-s6-config.sh          # Script de verificación de s6-overlay
+├── s6-overlay/                # Configuración de s6-overlay
+│   └── s6-rc.d/
+│       └── user/
+│           ├── 01-ssh/        # Servicio SSH
+│           ├── 02-vllm/       # Servicio vLLM
+│           ├── 03-openwebui/  # Servicio Open WebUI
+│           ├── contents.d/    # Definición de servicios
+│           └── dependencies.d/ # Dependencias entre servicios
+└── README.md
+```
 
 ## Contribuir
 

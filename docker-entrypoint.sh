@@ -1,6 +1,8 @@
 #!/bin/bash
 set -e
 
+echo "=== Iniciando contenedor ==="
+
 # Configurar variables de entorno por defecto
 export OPENAI_API_BASE_URL=${OPENAI_API_BASE_URL:-"http://localhost:8000/v1"}
 export OPENAI_API_KEY=${OPENAI_API_KEY:-"sk-fake-key"}
@@ -26,5 +28,22 @@ echo "vLLM Model: $VLLM_MODEL"
 echo "GPU Memory Utilization: $VLLM_GPU_MEMORY_UTILIZATION"
 echo "====================================="
 
+# Verificar que s6-overlay esté instalado
+if [ ! -f /init ]; then
+    echo "ERROR: s6-overlay no está instalado (/init no encontrado)"
+    exit 1
+fi
+
+# Verificar configuración de servicios
+echo "=== Verificando servicios configurados ==="
+if [ -d /etc/s6-overlay/s6-rc.d/user ]; then
+    echo "Servicios encontrados:"
+    ls -la /etc/s6-overlay/s6-rc.d/user/
+else
+    echo "ERROR: No se encontró configuración de servicios s6-overlay"
+    exit 1
+fi
+
+echo "=== Iniciando s6-overlay ==="
 # Inicializar s6-overlay
 exec /init 

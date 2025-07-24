@@ -6,5 +6,20 @@ echo "Iniciando servicio SSH..."
 # Configurar SSH
 mkdir -p /var/run/sshd
 
+# Verificar que sshd esté disponible
+if [ ! -f /usr/sbin/sshd ]; then
+    echo "ERROR: sshd no está instalado"
+    exit 1
+fi
+
+# Verificar configuración SSH
+echo "Verificando configuración SSH..."
+if [ -f /etc/ssh/sshd_config ]; then
+    echo "Configuración SSH encontrada"
+else
+    echo "ADVERTENCIA: No se encontró sshd_config"
+fi
+
 # Iniciar SSH daemon
+echo "Iniciando SSH daemon..."
 exec /usr/sbin/sshd -D 

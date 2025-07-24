@@ -19,7 +19,14 @@ echo "Puerto: $VLLM_PORT"
 echo "Host: $VLLM_HOST"
 echo "GPU Memory Utilization: $VLLM_GPU_MEMORY_UTILIZATION"
 
-# Iniciar vLLM
+# Verificar que las variables de entorno estén configuradas
+if [ -z "$VLLM_MODEL" ]; then
+    echo "ERROR: VLLM_MODEL no está configurado"
+    exit 1
+fi
+
+# Iniciar vLLM con mejor logging
+echo "Iniciando vLLM con modelo $VLLM_MODEL..."
 exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \

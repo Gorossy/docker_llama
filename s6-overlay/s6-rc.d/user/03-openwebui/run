@@ -34,5 +34,9 @@ echo "Puerto: $PORT"
 echo "Data Directory: $DATA_DIR"
 echo "OpenAI API Base URL: $OPENAI_API_BASE_URL"
 
-# Iniciar Open WebUI
-exec open-webui serve --port "$PORT" 
+# Crear directorio de datos si no existe
+mkdir -p "$DATA_DIR"
+
+# Iniciar Open WebUI con mejor logging
+echo "Iniciando Open WebUI en puerto $PORT..."
+exec open-webui serve --port "$PORT" --host "0.0.0.0" 
