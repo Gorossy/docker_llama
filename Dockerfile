@@ -50,6 +50,9 @@ COPY s6-overlay/ /etc/s6-overlay/
 COPY requirements.txt /app/
 COPY docker-entrypoint.sh /app/
 
+# Dar permisos de ejecución a los scripts de s6-overlay
+RUN chmod +x /etc/s6-overlay/s6-rc.d/user/*/run /etc/s6-overlay/s6-rc.d/user/*/finish
+
 # Instalar dependencias de Python usando conda
 RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
