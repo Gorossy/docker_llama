@@ -1,0 +1,17 @@
+#!/command/with-contenv bash
+set -e
+echo "=== Iniciando servicio SSH ==="
+
+# Crear directorio necesario
+mkdir -p /var/run/sshd
+
+# Verificar que sshd esté disponible
+if [ ! -f /usr/sbin/sshd ]; then
+    echo "ERROR: sshd no está instalado"
+    exit 1
+fi
+
+echo "Configuración SSH OK. Iniciando daemon..."
+
+# Iniciar SSH daemon en primer plano
+exec /usr/sbin/sshd -D -e

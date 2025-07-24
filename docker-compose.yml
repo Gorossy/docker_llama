@@ -6,17 +6,20 @@ services:
     container_name: llm-webui-container
     ports:
       - "4444:22"      # SSH
-      - "8000:8000"  # vLLM API
-      - "27015:27015" # Open WebUI
+      - "8000:8000"    # vLLM API
+      - "27015:27015"  # Open WebUI
     environment:
       - OPENAI_API_BASE_URL=http://localhost:8000/v1
       - OPENAI_API_KEY=sk-fake-key
       - PORT=27015
-      - DATA_DIR=./open-webui-data
+      - DATA_DIR=/app/open-webui-data
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
       - VLLM_GPU_MEMORY_UTILIZATION=0.85
       - VLLM_MODEL=NousResearch/Meta-Llama-3-8B-Instruct
+      # Variables s6-overlay para debugging
+      - S6_LOGGING=1
+      - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
     volumes:
       - ./data:/app/open-webui-data
     deploy:
@@ -26,4 +29,6 @@ services:
             - driver: nvidia
               count: 1
               capabilities: [gpu]
-    restart: unless-stopped 
+    restart: unless-stopped
+    stdin_open: true
+    tty: true

@@ -1,4 +1,0 @@
-#!/command/with-contenv bash
-set -e
-
-echo "Servicio Open WebUI finalizado" 

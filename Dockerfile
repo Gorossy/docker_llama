@@ -16,11 +16,17 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     git \
     build-essential \
+    xz-utils \
     && apt-get clean \
     && rm -rf /var/lib/apt/lists/*
 
 # Forzar "python3" para usar el conda Python
 RUN ln -sf /opt/conda/bin/python /usr/local/bin/python3
+
+# Instalar s6-overlay v3
+ARG S6_OVERLAY_VERSION=3.1.6.2
+RUN curl -L "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-noarch.tar.xz" | tar -C / -Jxpf - \
+    && curl -L "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz" | tar -C / -Jxpf -
 
 # Crear usuario para SSH
 RUN useradd -m -s /bin/bash dockeruser && \
@@ -33,36 +39,37 @@ RUN mkdir -p /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
     sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
 
-# Instalar s6-overlay
-RUN wget -qO- https://github.com/just-containers/s6-overlay/releases/download/v3.1.6.2/s6-overlay-noarch.tar.xz | tar -Jxpf - -C / && \
-    wget -qO- https://github.com/just-containers/s6-overlay/releases/download/v3.1.6.2/s6-overlay-x86_64.tar.xz | tar -Jxpf - -C /
-
-# Configurar variables de entorno
-ENV S6_OVERLAY_VERSION=3.1.6.2
-ENV S6_KEEP_ENV=1
-ENV S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-
 # Crear directorio de trabajo
 WORKDIR /app
 
 # Copiar archivos de configuración
-COPY s6-overlay/ /etc/s6-overlay/
 COPY requirements.txt /app/
 COPY docker-entrypoint.sh /app/
-
-# Dar permisos de ejecución a los scripts de s6-overlay
-RUN chmod +x /etc/s6-overlay/s6-rc.d/user/*/run /etc/s6-overlay/s6-rc.d/user/*/finish
 
 # Instalar dependencias de Python usando conda
 RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
-# Hacer ejecutable el script de entrada
+# Copiar configuración s6-overlay DESPUÉS de instalar s6-overlay
+COPY s6-overlay/ /etc/s6-overlay/
+
+# Dar permisos de ejecución a los scripts de s6-overlay
+# CORREGIDO: Sin carpeta "user/"
+RUN find /etc/s6-overlay/s6-rc.d -name "run" -type f -exec chmod +x {} \; \
+    && find /etc/s6-overlay/s6-rc.d -name "finish" -type f -exec chmod +x {} \;
+
+# Variables de entorno para s6-overlay
+ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
+    S6_LOGGING=1 \
+    S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
+    S6_KEEP_ENV=1
+
+# Hacer ejecutable el script de entrada (opcional, para init scripts)
 RUN chmod +x /app/docker-entrypoint.sh
 
 # Exponer puertos
 EXPOSE 22 8000 27015
 
-# Configurar el punto de entrada
-ENTRYPOINT ["/app/docker-entrypoint.sh"] 
+# CRÍTICO: ENTRYPOINT debe ser /init para s6-overlay
+ENTRYPOINT ["/init"]
