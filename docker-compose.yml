@@ -1,0 +1,29 @@
+version: '3.8'
+
+services:
+  llm-webui:
+    build: .
+    container_name: llm-webui-container
+    ports:
+      - "22:22"      # SSH
+      - "8000:8000"  # vLLM API
+      - "27015:27015" # Open WebUI
+    environment:
+      - OPENAI_API_BASE_URL=http://localhost:8000/v1
+      - OPENAI_API_KEY=sk-fake-key
+      - PORT=27015
+      - DATA_DIR=./open-webui-data
+      - VLLM_HOST=0.0.0.0
+      - VLLM_PORT=8000
+      - VLLM_GPU_MEMORY_UTILIZATION=0.85
+      - VLLM_MODEL=NousResearch/Meta-Llama-3-8B-Instruct
+    volumes:
+      - ./data:/app/open-webui-data
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+    restart: unless-stopped 

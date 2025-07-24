@@ -1,0 +1,10 @@
+#!/command/with-contenv bash
+set -e
+
+echo "Iniciando servicio SSH..."
+
+# Configurar SSH
+mkdir -p /var/run/sshd
+
+# Iniciar SSH daemon
+exec /usr/sbin/sshd -D 

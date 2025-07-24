@@ -1,0 +1,38 @@
+#!/command/with-contenv bash
+set -e
+
+echo "Iniciando servicio Open WebUI..."
+
+# Esperar a que vLLM esté disponible
+echo "Esperando a que vLLM esté disponible en $OPENAI_API_BASE_URL..."
+
+# Función para verificar si vLLM está listo
+wait_for_vllm() {
+    local max_attempts=60
+    local attempt=1
+    
+    while [ $attempt -le $max_attempts ]; do
+        if curl -s "$OPENAI_API_BASE_URL/models" > /dev/null 2>&1; then
+            echo "vLLM está listo!"
+            return 0
+        fi
+        
+        echo "Intento $attempt/$max_attempts: vLLM no está listo aún..."
+        sleep 10
+        attempt=$((attempt + 1))
+    done
+    
+    echo "ERROR: vLLM no se pudo conectar después de $max_attempts intentos"
+    return 1
+}
+
+# Esperar a que vLLM esté listo
+wait_for_vllm
+
+echo "Configuración de Open WebUI:"
+echo "Puerto: $PORT"
+echo "Data Directory: $DATA_DIR"
+echo "OpenAI API Base URL: $OPENAI_API_BASE_URL"
+
+# Iniciar Open WebUI
+exec open-webui serve --port "$PORT" 
