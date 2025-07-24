@@ -42,20 +42,16 @@ RUN mkdir -p /var/run/sshd && \
 # Crear directorio de trabajo
 WORKDIR /app
 
-# Copiar archivos de configuración
+# Copiar requirements y instalar dependencias PRIMERO
 COPY requirements.txt /app/
-COPY docker-entrypoint.sh /app/
-
-# Instalar dependencias de Python usando conda
 RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
-# Copiar configuración s6-overlay DESPUÉS de instalar s6-overlay
-COPY s6-overlay/ /etc/s6-overlay/
+# Copiar configuración s6-overlay DESPUÉS
+COPY s6-overlay-fixed/ /etc/s6-overlay/
 
-# Dar permisos de ejecución a los scripts de s6-overlay
-# CORREGIDO: Sin carpeta "user/"
+# Dar permisos de ejecución a los scripts
 RUN find /etc/s6-overlay/s6-rc.d -name "run" -type f -exec chmod +x {} \; \
     && find /etc/s6-overlay/s6-rc.d -name "finish" -type f -exec chmod +x {} \;
 
@@ -65,8 +61,18 @@ ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     S6_BEHAVIOUR_IF_STAGE2_FAILS=2 \
     S6_KEEP_ENV=1
 
-# Hacer ejecutable el script de entrada (opcional, para init scripts)
-RUN chmod +x /app/docker-entrypoint.sh
+# Variables de entorno por defecto para servicios
+ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
+    OPENAI_API_KEY=sk-fake-key \
+    PORT=27015 \
+    DATA_DIR=/app/open-webui-data \
+    VLLM_HOST=0.0.0.0 \
+    VLLM_PORT=8000 \
+    VLLM_GPU_MEMORY_UTILIZATION=0.85 \
+    VLLM_MODEL=NousResearch/Meta-Llama-3-8B-Instruct
+
+# Crear directorio de datos
+RUN mkdir -p /app/open-webui-data
 
 # Exponer puertos
 EXPOSE 22 8000 27015
