@@ -1,34 +1,30 @@
 #!/command/with-contenv bash
 set -e
 
-echo "=== Iniciando servicio vLLM ==="
+echo "=== Starting vLLM service ==="
 
-# Esperar a que SSH esté listo
 sleep 3
 
-# Verificar GPU si está disponible
 if command -v nvidia-smi &> /dev/null; then
-    echo "GPU detectada:"
+    echo "GPU detected:"
     nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
 else
-    echo "ADVERTENCIA: No se detectó GPU NVIDIA"
+    echo "WARNING: No NVIDIA GPU detected"
 fi
 
-echo "Configuración vLLM:"
-echo "  Modelo: $VLLM_MODEL"
+echo "vLLM configuration:"
+echo "  Model: $VLLM_MODEL"
 echo "  Host: $VLLM_HOST"
-echo "  Puerto: $VLLM_PORT" 
+echo "  Port: $VLLM_PORT" 
 echo "  GPU Memory: $VLLM_GPU_MEMORY_UTILIZATION"
 
-# Verificar variables críticas
 if [ -z "$VLLM_MODEL" ]; then
-    echo "ERROR: VLLM_MODEL no está configurado"
+    echo "ERROR: VLLM_MODEL not configured"
     exit 1
 fi
 
-echo "Iniciando vLLM..."
+echo "Starting vLLM..."
 
-# Iniciar vLLM
 exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \

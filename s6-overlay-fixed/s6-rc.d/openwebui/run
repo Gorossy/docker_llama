@@ -1,43 +1,39 @@
 #!/command/with-contenv bash
 set -e
 
-echo "=== Iniciando servicio Open WebUI ==="
+echo "=== Starting Open WebUI service ==="
 
-# Función para verificar vLLM
 wait_for_vllm() {
     local max_attempts=30
     local attempt=1
     
-    echo "Esperando vLLM en $OPENAI_API_BASE_URL..."
+    echo "Waiting for vLLM at $OPENAI_API_BASE_URL..."
     
     while [ $attempt -le $max_attempts ]; do
         if curl -s --connect-timeout 5 "$OPENAI_API_BASE_URL/models" > /dev/null 2>&1; then
-            echo "✅ vLLM está listo!"
+            echo "✅ vLLM is ready!"
             return 0
         fi
         
-        echo "Intento $attempt/$max_attempts: esperando vLLM..."
+        echo "Attempt $attempt/$max_attempts: waiting for vLLM..."
         sleep 10
         attempt=$((attempt + 1))
     done
     
-    echo "❌ vLLM no respondió después de $max_attempts intentos"
-    echo "Continuando de todos modos..."
+    echo "❌ vLLM did not respond after $max_attempts attempts"
+    echo "Continuing anyway..."
     return 0
 }
 
-# Esperar a vLLM
 wait_for_vllm
 
-echo "Configuración Open WebUI:"
-echo "  Puerto: $PORT"
+echo "Open WebUI configuration:"
+echo "  Port: $PORT"
 echo "  Data Directory: $DATA_DIR"
 echo "  API Base URL: $OPENAI_API_BASE_URL"
 
-# Crear directorio de datos
 mkdir -p "$DATA_DIR"
 
-echo "Iniciando Open WebUI..."
+echo "Starting Open WebUI..."
 
-# Iniciar Open WebUI
 exec open-webui serve --port "$PORT" --host "0.0.0.0"
