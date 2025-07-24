@@ -5,7 +5,7 @@ services:
     build: .
     container_name: llm-webui-container
     ports:
-      - "22:22"      # SSH
+      - "4444:22"      # SSH
       - "8000:8000"  # vLLM API
       - "27015:27015" # Open WebUI
     environment:
