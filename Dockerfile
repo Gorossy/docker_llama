@@ -37,7 +37,7 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
-COPY s6-overlay/ /etc/s6-overlay/
+COPY s6-overlay-fixed/ /etc/s6-overlay/
 
 RUN find /etc/s6-overlay/s6-rc.d -name "run" -type f -exec chmod +x {} \; \
     && find /etc/s6-overlay/s6-rc.d -name "finish" -type f -exec chmod +x {} \;
