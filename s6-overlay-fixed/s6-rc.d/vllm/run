@@ -28,4 +28,5 @@ echo "Starting vLLM..."
 exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \
-    --gpu-memory-utilization "$VLLM_GPU_MEMORY_UTILIZATION"
+    --gpu-memory-utilization "$VLLM_GPU_MEMORY_UTILIZATION" \
+    --tensor-parallel-size 1

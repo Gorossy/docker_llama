@@ -18,27 +18,58 @@ Docker container providing a complete solution for running an LLM server with we
 
 ## Requirements
 
-- Docker
-- Docker Compose
-- NVIDIA GPU with drivers (optional)
-- NVIDIA Container Toolkit (if using GPU)
+### Hardware Requirements
+- **GPU**: NVIDIA GPU with minimum 16GB VRAM (RTX 4090, A6000+ recommended)
+- **Memory**: Minimum 16GB RAM (32GB recommended)  
+- **Storage**: Minimum 10GB for image + 30GB for model cache
+- **CPU**: 4+ cores recommended
+- **Network**: Required for initial model download (~28GB)
+
+### Software Requirements
+- Docker Engine 20.10+
+- Docker Compose v2.0+
+- NVIDIA GPU drivers (525+)
+- NVIDIA Container Toolkit
+
+### Template Metadata
+This image includes embedded template metadata for deployment validation:
+- Model: DeepSeek-R1-Distill-Qwen-14B (14B parameters)
+- Embedded weights: No (runtime download with persistent cache)
+- Download strategy: Industry standard runtime caching
+- Ports: SSH (4444), vLLM API (8000), Web UI (27015)
 
 ## Installation
 
-### 1. Clone repository
+### Option 1: Pull from Docker Hub (Recommended)
 ```bash
+# Pull lightweight image (model downloads at runtime)
+docker pull dmaldonadob/llm-webui-deepseek-r1-14b:latest
+
+# Create cache directories
+mkdir -p ./data ./hf-cache
+
+# Run with persistent HuggingFace cache (industry standard)
+docker run -d --gpus all \
+  --name llm-webui-container \
+  -p 4444:22 \
+  -p 8000:8000 \
+  -p 27015:27015 \
+  -v ./data:/app/open-webui-data \
+  -v ./hf-cache:/root/.cache/huggingface \
+  dmaldonadob/llm-webui-deepseek-r1-14b:latest
+```
+
+### Option 2: Build from source
+```bash
+# Clone repository
 git clone <repository-url>
 cd <repository>
-```
 
-### 2. Build and run automatically
-```bash
-./build-and-deploy.sh
-```
+# Build and push to Docker Hub
+./build-and-push.sh
 
-### 3. Manual build
-```bash
-docker build -t llm-webui .
+# Or build locally
+docker build -t llm-webui-deepseek .
 docker-compose up -d
 ```
 
@@ -71,7 +102,7 @@ ssh root@localhost -p 4444
 | `VLLM_HOST` | vLLM host | `0.0.0.0` |
 | `VLLM_PORT` | vLLM port | `8000` |
 | `VLLM_GPU_MEMORY_UTILIZATION` | GPU memory utilization | `0.85` |
-| `VLLM_MODEL` | LLM model to load | `NousResearch/Meta-Llama-3-8B-Instruct` |
+| `VLLM_MODEL` | LLM model to load | `deepseek-ai/DeepSeek-R1-Distill-Qwen-14B` |
 
 ## Service Management with s6-overlay
 

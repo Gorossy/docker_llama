@@ -1,5 +1,24 @@
 FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
+# Template metadata for frontend deployment requirements
+LABEL template.name="LLM WebUI with vLLM and DeepSeek-R1-Distill-Qwen-14B"
+LABEL template.description="Multi-service container with SSH, vLLM (14B model), and Open WebUI"
+LABEL template.version="2.0"
+LABEL template.gpu.required=true
+LABEL template.gpu.min_vram="16GB"
+LABEL template.gpu.recommended="RTX 4090, A6000, or better"
+LABEL template.memory.min="16GB"
+LABEL template.memory.recommended="32GB"
+LABEL template.storage.min="10GB"
+LABEL template.cache.huggingface="30GB"
+LABEL template.ports.ssh="4444"
+LABEL template.ports.vllm="8000"
+LABEL template.ports.webui="27015"
+LABEL template.model="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
+LABEL template.model_size="14B"
+LABEL template.embedded_weights=false
+LABEL template.download_strategy="runtime_with_cache"
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/opt/conda/bin:$PATH"
 
@@ -37,6 +56,9 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
+# Create cache directory for HuggingFace models (runtime download)
+RUN mkdir -p /root/.cache/huggingface
+
 COPY s6-overlay-fixed/ /etc/s6-overlay/
 
 RUN find /etc/s6-overlay/s6-rc.d -name "run" -type f -exec chmod +x {} \; \
@@ -54,7 +76,7 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=NousResearch/Meta-Llama-3-8B-Instruct
+    VLLM_MODEL=deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
 
 RUN mkdir -p /app/open-webui-data
 
