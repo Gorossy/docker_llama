@@ -2,7 +2,7 @@
 set -e
 
 # Docker Hub repository name
-REPO_NAME="dmaldonadob/llm-webui-qwen2.5-72b"
+REPO_NAME="dmaldonadob/llm-webui-qwen3-32b"
 TAG="latest"
 
 echo "🔨 Building lightweight Docker image (model downloads at runtime)..."

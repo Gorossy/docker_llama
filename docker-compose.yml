@@ -16,7 +16,7 @@ services:
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
       - VLLM_GPU_MEMORY_UTILIZATION=0.85
-      - VLLM_MODEL=Qwen/Qwen2.5-72B-Instruct
+      - VLLM_MODEL=Qwen/Qwen3-32B
       - S6_LOGGING=1
       - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
     volumes:

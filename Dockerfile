@@ -1,21 +1,21 @@
 FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
 # Template metadata for frontend deployment requirements
-LABEL template.name="LLM WebUI with vLLM and Qwen2.5-72B-Instruct"
-LABEL template.description="Multi-service container with SSH, vLLM (72B model), and Open WebUI"
+LABEL template.name="LLM WebUI with vLLM and Qwen3-32B"
+LABEL template.description="Multi-service container with SSH, vLLM (32B model), and Open WebUI"
 LABEL template.version="2.0"
 LABEL template.gpu.required=true
-LABEL template.gpu.min_vram="48GB"
+LABEL template.gpu.min_vram="32GB"
 LABEL template.gpu.recommended="RTX 4090, A6000, or better"
 LABEL template.memory.min="32GB"
-LABEL template.memory.recommended="64GB"
+LABEL template.memory.recommended="48GB"
 LABEL template.storage.min="10GB"
-LABEL template.cache.huggingface="160GB"
+LABEL template.cache.huggingface="80GB"
 LABEL template.ports.ssh="4444"
 LABEL template.ports.vllm="8000"
 LABEL template.ports.webui="27015"
-LABEL template.model="Qwen/Qwen2.5-72B-Instruct"
-LABEL template.model_size="72B"
+LABEL template.model="Qwen/Qwen3-32B"
+LABEL template.model_size="32B"
 LABEL template.embedded_weights=true
 LABEL template.download_strategy="build_time"
 
@@ -58,7 +58,7 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
 
 # Create model directory and download model during build time
 RUN mkdir -p /app/models
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Qwen/Qwen2.5-72B-Instruct', local_dir='/app/models/Qwen2.5-72B-Instruct', local_dir_use_symlinks=False)"
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Qwen/Qwen3-32B', local_dir='/app/models/Qwen3-32B', local_dir_use_symlinks=False)"
 
 COPY s6-overlay-fixed/ /etc/s6-overlay/
 
@@ -77,7 +77,7 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=/app/models/Qwen2.5-72B-Instruct
+    VLLM_MODEL=/app/models/Qwen3-32B
 
 RUN mkdir -p /app/open-webui-data
 
