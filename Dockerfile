@@ -16,8 +16,8 @@ LABEL template.ports.vllm="8000"
 LABEL template.ports.webui="27015"
 LABEL template.model="deepseek-ai/DeepSeek-R1-Distill-Qwen-14B"
 LABEL template.model_size="14B"
-LABEL template.embedded_weights=false
-LABEL template.download_strategy="runtime_with_cache"
+LABEL template.embedded_weights=true
+LABEL template.download_strategy="build_time"
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/opt/conda/bin:$PATH"
@@ -56,8 +56,9 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
-# Create cache directory for HuggingFace models (runtime download)
-RUN mkdir -p /root/.cache/huggingface
+# Create model directory and download model during build time
+RUN mkdir -p /app/models
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='deepseek-ai/DeepSeek-R1-Distill-Qwen-14B', local_dir='/app/models/DeepSeek-R1-Distill-Qwen-14B', local_dir_use_symlinks=False)"
 
 COPY s6-overlay-fixed/ /etc/s6-overlay/
 
@@ -76,7 +77,7 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=deepseek-ai/DeepSeek-R1-Distill-Qwen-14B
+    VLLM_MODEL=/app/models/DeepSeek-R1-Distill-Qwen-14B
 
 RUN mkdir -p /app/open-webui-data
 
