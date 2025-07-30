@@ -2,11 +2,11 @@
 set -e
 
 # Docker Hub repository name
-REPO_NAME="dmaldonadob/llm-webui-qwen3-32b"
+REPO_NAME="dmaldonadob/llm-webui-qwen3-8b"
 TAG="latest"
 
-echo "🔨 Building lightweight Docker image (model downloads at runtime)..."
-echo "Build time: ~5-10 minutes (no model download during build)..."
+echo "🔨 Building Docker image with embedded Qwen3-8B model..."
+echo "Build time: ~15-20 minutes (includes model download during build)..."
 docker build -t $REPO_NAME:$TAG .
 
 echo "📊 Image size:"
