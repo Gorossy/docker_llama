@@ -23,10 +23,6 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 # Force "python3" to be the conda Python
 RUN ln -sf /opt/conda/bin/python /usr/local/bin/python3
 
-# Create non-root user
-RUN useradd -m -s /bin/bash dockeruser && \
-    usermod -aG sudo dockeruser
-
 # Configure SSH
 RUN mkdir -p /var/run/sshd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
