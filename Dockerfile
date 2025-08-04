@@ -1,23 +1,6 @@
 FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
-# Template metadata for frontend deployment requirements
-LABEL template.name="LLM WebUI with vLLM and Qwen3-8B"
-LABEL template.description="Multi-service container with SSH, vLLM (8B model), and Open WebUI"
-LABEL template.version="2.0"
-LABEL template.gpu.required=true
-LABEL template.gpu.min_vram="16GB"
-LABEL template.gpu.recommended="A6000, RTX 4090, or better"
-LABEL template.memory.min="16GB"
-LABEL template.memory.recommended="32GB"
-LABEL template.storage.min="10GB"
-LABEL template.cache.huggingface="20GB"
-LABEL template.ports.ssh="4444"
-LABEL template.ports.vllm="8000"
-LABEL template.ports.webui="27015"
-LABEL template.model="Qwen/Qwen3-8B"
-LABEL template.model_size="8B"
-LABEL template.embedded_weights=true
-LABEL template.download_strategy="build_time"
+# LLM WebUI with vLLM and Qwen3-8B
 
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/opt/conda/bin:$PATH"
