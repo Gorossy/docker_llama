@@ -29,5 +29,4 @@ exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \
     --gpu-memory-utilization "$VLLM_GPU_MEMORY_UTILIZATION" \
-    --max-model-len 19696 \
     --tensor-parallel-size 1
