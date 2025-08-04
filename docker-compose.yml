@@ -19,9 +19,6 @@ services:
       - VLLM_MODEL=/app/models/Qwen3-8B
       - S6_LOGGING=1
       - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
-    volumes:
-      - ./data:/app/open-webui-data
-      - ./hf-cache:/root/.cache/huggingface
     deploy:
       resources:
         reservations:

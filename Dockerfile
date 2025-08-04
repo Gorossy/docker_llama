@@ -41,13 +41,16 @@ RUN curl -L "https://github.com/just-containers/s6-overlay/releases/download/v${
     && curl -L "https://github.com/just-containers/s6-overlay/releases/download/v${S6_OVERLAY_VERSION}/s6-overlay-x86_64.tar.xz" | tar -C / -Jxpf -
 
 RUN useradd -m -s /bin/bash dockeruser && \
-    echo "dockeruser:password123" | chpasswd && \
     usermod -aG sudo dockeruser
 
 RUN mkdir -p /var/run/sshd && \
-    echo 'root:root123' | chpasswd && \
     sed -i 's/#PermitRootLogin prohibit-password/PermitRootLogin yes/' /etc/ssh/sshd_config && \
-    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication yes/' /etc/ssh/sshd_config
+    sed -i 's/#PasswordAuthentication yes/PasswordAuthentication no/' /etc/ssh/sshd_config && \
+    sed -i 's/#PubkeyAuthentication yes/PubkeyAuthentication yes/' /etc/ssh/sshd_config && \
+    sed -i 's/#ListenAddress 0.0.0.0/ListenAddress 0.0.0.0/' /etc/ssh/sshd_config
+
+# SSH access files (empty authorized_keys)
+RUN mkdir -p /root/.ssh/ && echo '' > /root/.ssh/authorized_keys && chmod 600 /root/.ssh/authorized_keys
 
 WORKDIR /app
 
