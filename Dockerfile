@@ -1,16 +1,16 @@
 FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
-# LLM WebUI with vLLM and Qwen3-8B
+# LLM WebUI with vLLM and GPT-OSS-20B
 
-LABEL template.name="llm-webui-qwen3-8b" \
-      template.description="LLM WebUI with vLLM backend and Qwen3-8B model" \
+LABEL template.name="llm-webui-gpt-oss-20b" \
+      template.description="LLM WebUI with vLLM backend and GPT-OSS-20B model" \
       template.version="1.0" \
-      template.model="Qwen/Qwen3-8B" \
-      template.storage.min="50GB" \
+      template.model="openai/gpt-oss-20b" \
+      template.storage.min="40GB" \
       template.gpu.required="true" \
       template.gpu.memory.min="16GB" \
-      template.gpu.supported="RTX A6000,RTX 4090,L40,L40s,RTX 6000 Ada,RTX 5090,A100-40GB,A100-80GB,H100,H200,B200" \
-      template.gpu.recommended="L40s,RTX 6000 Ada,RTX 5090,A100-40GB,A100-80GB,H100,H200,B200" \
+      template.gpu.supported="RTX 4070,RTX 4080,RTX 4090,RTX A4000,RTX A5000,RTX A6000,L40,L40s,RTX 6000 Ada,RTX 5090,A100-40GB,A100-80GB,H100,H200,B200" \
+      template.gpu.recommended="RTX 4080,RTX 4090,RTX A5000,RTX A6000,L40s,RTX 6000 Ada,RTX 5090" \
       template.ports.ssh="22" \
       template.ports.vllm="8000" \
       template.ports.webui="27015"
@@ -57,7 +57,7 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
 
 # Create model directory and download model during build time
 RUN mkdir -p /app/models
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Qwen/Qwen3-8B', local_dir='/app/models/Qwen3-8B', local_dir_use_symlinks=False)"
+RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai/gpt-oss-20b', local_dir='/app/models/gpt-oss-20b', local_dir_use_symlinks=False)"
 
 COPY s6-overlay/ /etc/s6-overlay/
 
@@ -73,7 +73,7 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=/app/models/Qwen3-8B
+    VLLM_MODEL=/app/models/gpt-oss-20b
 
 RUN mkdir -p /app/open-webui-data
 
