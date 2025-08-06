@@ -38,11 +38,8 @@ RUN echo "source /opt/conda/etc/profile.d/conda.sh && conda activate base" >> /r
 
 WORKDIR /app
 
-# Install basic Python packages
-COPY requirements.txt /app/
-RUN conda install -c conda-forge -y numpy==1.24.3 && \
-    pip install --no-cache-dir -r requirements.txt && \
-    pip cache purge
+# Base SSH image - no application packages installed
+# Application-specific packages should be installed in derived images
 
 EXPOSE 22 27015
 

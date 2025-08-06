@@ -1,5 +1,0 @@
-vllm
-open-webui
-transformers
-accelerate
-huggingface_hub 
