@@ -3,6 +3,15 @@ set -e
 
 echo "=== Starting vLLM service ==="
 
+# Auto-detect model path if not set
+if [ -z "$VLLM_MODEL" ]; then
+    MODEL_DIR=$(find /app/models -maxdepth 1 -type d ! -path /app/models | head -1)
+    if [ -n "$MODEL_DIR" ]; then
+        export VLLM_MODEL="$MODEL_DIR"
+        echo "Auto-detected model: $VLLM_MODEL"
+    fi
+fi
+
 sleep 3
 
 if command -v nvidia-smi &> /dev/null; then

@@ -55,9 +55,17 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip install --no-cache-dir -r requirements.txt && \
     pip cache purge
 
+# Build argument for model URL (can be full URL or just repo_id)
+ARG MODEL_URL=https://huggingface.co/openai/gpt-oss-20b
+
 # Create model directory and download model during build time
 RUN mkdir -p /app/models
-RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='openai/gpt-oss-20b', local_dir='/app/models/gpt-oss-20b', local_dir_use_symlinks=False)"
+RUN echo "Processing model URL: ${MODEL_URL}" && \
+    REPO_ID=$(echo "${MODEL_URL}" | sed 's|^https://huggingface.co/||' | sed 's|/$||') && \
+    MODEL_NAME=$(echo "${REPO_ID}" | cut -d'/' -f2) && \
+    echo "Extracted repo_id: ${REPO_ID}" && \
+    echo "Model name: ${MODEL_NAME}" && \
+    python -c "from huggingface_hub import snapshot_download; repo_id='${REPO_ID}'; model_name=repo_id.split('/')[-1]; print(f'Downloading {repo_id} to /app/models/{model_name}'); snapshot_download(repo_id=repo_id, local_dir=f'/app/models/{model_name}', local_dir_use_symlinks=False)"
 
 COPY s6-overlay/ /etc/s6-overlay/
 
@@ -73,7 +81,7 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=/app/models/gpt-oss-20b
+    VLLM_MODEL=""
 
 RUN mkdir -p /app/open-webui-data
 
