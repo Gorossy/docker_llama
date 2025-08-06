@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-        - MODEL_URL=https://huggingface.co/openai/gpt-oss-20b
+        - MODEL_URL=https://huggingface.co/deepseek-ai/DeepSeek-R1-Distill-Qwen-32B
     container_name: llm-webui-container
     ports:
       - "4444:22"
