@@ -2,4 +2,5 @@ vllm
 open-webui
 transformers
 accelerate
-huggingface_hub 
+huggingface_hub
+flashinfer --index-url https://flashinfer.ai/whl/cu121/torch2.4/
