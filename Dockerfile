@@ -56,6 +56,9 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
     pip cache purge
 
 
+# Build argument for model URL (can be full URL or just repo_id)
+ARG MODEL_URL=https://huggingface.co/Qwen/Qwen2.5-7B-Instruct
+
 # Create model directory and download model during build time
 RUN mkdir -p /app/models
 RUN echo "Processing model URL: ${MODEL_URL}" && \
