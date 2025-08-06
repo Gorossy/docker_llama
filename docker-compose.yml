@@ -23,7 +23,6 @@ services:
       - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
     volumes:
       - ./data:/app/open-webui-data
-      - ./models:/app/models
     deploy:
       resources:
         reservations:
