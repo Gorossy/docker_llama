@@ -2,6 +2,19 @@ FROM pytorch/pytorch:2.7.1-cuda12.8-cudnn9-runtime
 
 # LLM WebUI with vLLM and Qwen3-8B
 
+LABEL template.name="llm-webui-qwen3-8b" \
+      template.description="LLM WebUI with vLLM backend and Qwen3-8B model" \
+      template.version="1.0" \
+      template.model="Qwen/Qwen3-8B" \
+      template.storage.min="50GB" \
+      template.gpu.required="true" \
+      template.gpu.memory.min="16GB" \
+      template.gpu.supported="RTX A6000,RTX 4090,L40,L40s,RTX 6000 Ada,RTX 5090,A100-40GB,A100-80GB,H100,H200,B200" \
+      template.gpu.recommended="L40s,RTX 6000 Ada,RTX 5090,A100-40GB,A100-80GB,H100,H200,B200" \
+      template.ports.ssh="22" \
+      template.ports.vllm="8000" \
+      template.ports.webui="27015"
+
 ENV DEBIAN_FRONTEND=noninteractive
 ENV PATH="/opt/conda/bin:$PATH"
 
@@ -46,10 +59,7 @@ RUN conda install -c conda-forge -y numpy==1.24.3 && \
 RUN mkdir -p /app/models
 RUN python -c "from huggingface_hub import snapshot_download; snapshot_download(repo_id='Qwen/Qwen3-8B', local_dir='/app/models/Qwen3-8B', local_dir_use_symlinks=False)"
 
-COPY s6-overlay-fixed/ /etc/s6-overlay/
-
-RUN find /etc/s6-overlay/s6-rc.d -name "run" -type f -exec chmod +x {} \; \
-    && find /etc/s6-overlay/s6-rc.d -name "finish" -type f -exec chmod +x {} \;
+COPY s6-overlay/ /etc/s6-overlay/
 
 ENV S6_CMD_WAIT_FOR_SERVICES_MAXTIME=0 \
     S6_LOGGING=1 \
