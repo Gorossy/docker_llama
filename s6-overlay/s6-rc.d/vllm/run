@@ -26,6 +26,7 @@ echo "  Model: $VLLM_MODEL"
 echo "  Host: $VLLM_HOST"
 echo "  Port: $VLLM_PORT" 
 echo "  GPU Memory: $VLLM_GPU_MEMORY_UTILIZATION"
+echo "  Tensor Parallel Size: $VLLM_TENSOR_PARALLEL_SIZE"
 
 if [ -z "$VLLM_MODEL" ]; then
     echo "ERROR: VLLM_MODEL not configured"
@@ -38,4 +39,4 @@ exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \
     --gpu-memory-utilization "$VLLM_GPU_MEMORY_UTILIZATION" \
-    --tensor-parallel-size 1
+    --tensor-parallel-size "${VLLM_TENSOR_PARALLEL_SIZE:-1}"
