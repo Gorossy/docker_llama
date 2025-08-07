@@ -19,6 +19,7 @@ services:
       - VLLM_HOST=0.0.0.0
       - VLLM_PORT=8000
       - VLLM_GPU_MEMORY_UTILIZATION=0.95
+      - VLLM_TENSOR_PARALLEL_SIZE=2
       - S6_LOGGING=1
       - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
     volumes:
@@ -28,7 +29,7 @@ services:
         reservations:
           devices:
             - driver: nvidia
-              count: 1
+              count: all
               capabilities: [gpu, utility, compute]
     privileged: true
     restart: unless-stopped
