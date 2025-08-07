@@ -35,7 +35,7 @@ services:
               count: all
               capabilities: [gpu, utility, compute]
     privileged: true
-    network_mode: host
+    ipc: host
     restart: unless-stopped
     stdin_open: true
     tty: true
