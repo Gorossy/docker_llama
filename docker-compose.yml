@@ -20,6 +20,9 @@ services:
       - VLLM_PORT=8000
       - VLLM_GPU_MEMORY_UTILIZATION=0.95
       - VLLM_TENSOR_PARALLEL_SIZE=2
+      - NCCL_DEBUG=INFO
+      - NCCL_IB_DISABLE=1
+      - NCCL_P2P_DISABLE=1
       - S6_LOGGING=1
       - S6_BEHAVIOUR_IF_STAGE2_FAILS=2
     volumes:
@@ -32,6 +35,7 @@ services:
               count: all
               capabilities: [gpu, utility, compute]
     privileged: true
+    network_mode: host
     restart: unless-stopped
     stdin_open: true
     tty: true
