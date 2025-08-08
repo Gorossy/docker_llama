@@ -5,7 +5,7 @@ services:
     build:
       context: .
       args:
-        - MODEL_URL=https://huggingface.co/Qwen/Qwen3-32B
+        - MODEL_URL=https://huggingface.co/Qwen/Qwen3-8B
     container_name: llm-webui-container
     ports:
       - "4444:22"
