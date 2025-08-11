@@ -16,9 +16,37 @@ sleep 3
 
 if command -v nvidia-smi &> /dev/null; then
     echo "GPU detected:"
-    nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv || true
+    GPU_INFO=$(nvidia-smi --query-gpu=name,memory.total,memory.free --format=csv,noheader,nounits || true)
+    echo "$GPU_INFO"
+    
+    # Auto-detect dtype based on GPU
+    GPU_NAME=$(echo "$GPU_INFO" | cut -d',' -f1 | xargs)
+    case "$GPU_NAME" in
+        *"H100"*|*"H200"*|*"B200"*)
+            VLLM_DTYPE="auto"  # Uses FP8 when available
+            echo "  Detected high-end GPU: Using dtype=auto (FP8/BF16)"
+            ;;
+        *"A100"*)
+            VLLM_DTYPE="bfloat16"
+            echo "  Detected A100: Using dtype=bfloat16"
+            ;;
+        *"A6000"*|*"L40"*|*"6000 Ada"*)
+            VLLM_DTYPE="bfloat16"
+            echo "  Detected professional GPU: Using dtype=bfloat16"
+            ;;
+        *"RTX 40"*|*"RTX 50"*)
+            VLLM_DTYPE="bfloat16"
+            echo "  Detected RTX 40/50 series: Using dtype=bfloat16"
+            ;;
+        *)
+            VLLM_DTYPE="half"
+            echo "  Using dtype=half for compatibility"
+            ;;
+    esac
+    export VLLM_DTYPE
 else
     echo "WARNING: No NVIDIA GPU detected"
+    export VLLM_DTYPE="auto"
 fi
 
 echo "vLLM configuration:"
@@ -27,6 +55,7 @@ echo "  Host: $VLLM_HOST"
 echo "  Port: $VLLM_PORT" 
 echo "  GPU Memory: $VLLM_GPU_MEMORY_UTILIZATION"
 echo "  Tensor Parallel Size: $VLLM_TENSOR_PARALLEL_SIZE"
+echo "  Data Type: $VLLM_DTYPE"
 
 if [ -z "$VLLM_MODEL" ]; then
     echo "ERROR: VLLM_MODEL not configured"
@@ -39,4 +68,5 @@ exec vllm serve "$VLLM_MODEL" \
     --host "$VLLM_HOST" \
     --port "$VLLM_PORT" \
     --gpu-memory-utilization "$VLLM_GPU_MEMORY_UTILIZATION" \
-    --tensor-parallel-size "${VLLM_TENSOR_PARALLEL_SIZE:-1}"
+    --tensor-parallel-size "${VLLM_TENSOR_PARALLEL_SIZE:-1}" \
+    --dtype "$VLLM_DTYPE"

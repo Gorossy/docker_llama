@@ -82,7 +82,8 @@ ENV OPENAI_API_BASE_URL=http://localhost:8000/v1 \
     VLLM_HOST=0.0.0.0 \
     VLLM_PORT=8000 \
     VLLM_GPU_MEMORY_UTILIZATION=0.85 \
-    VLLM_MODEL=""
+    VLLM_MODEL="" \
+    VLLM_DTYPE="auto"
 
 RUN mkdir -p /app/open-webui-data
 
